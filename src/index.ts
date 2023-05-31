@@ -19,10 +19,9 @@ async function main() {
 
   // Now you can ask questions about the code
   const questions = [
-    "What does this function do?",
-    "Can this code be optimized?",
-    "Is there any potential bug in this code?",
-    // Add more questions as needed
+    "how can we extend this code?",
+    // "Can this code be optimized?",
+    // "Is there any potential bug in this code?",
   ];
 
   for (const question of questions) {

@@ -1,6 +1,6 @@
 // src/gitService.ts
 import { simpleGit, SimpleGit, CleanOptions } from 'simple-git';
-import fs from "fs/promises";
+import { readdir, readFile, stat } from "fs/promises"; // Change 1
 import path from "path";
 import ignore from "ignore";
 
@@ -14,34 +14,30 @@ export class GitService {
   }
 
   async getGitIgnore() {
-    const gitIgnorePath = path.join(this.repoPath, ".gitignore");
+    const gitIgnorePath = path.resolve(this.repoPath, ".gitignore");
     const ig = ignore();
-    try {
-      const gitIgnoreContent = await fs.readFile(gitIgnorePath, "utf-8");
-      ig.add(gitIgnoreContent);
-    } catch (error) {
-      // .gitignore file not found, we will ignore nothing
-    }
+    const gitIgnoreContent = await readFile(gitIgnorePath, "utf-8").catch(() => ''); // Change 2
+    ig.add(gitIgnoreContent); // Change 2
     return ig;
   }
 
   async readRepoFiles(directoryPath: string): Promise<string[]> {
     try {
-      const dir = await fs.readdir(path.join(this.repoPath, directoryPath));
-      const ig = await this.getGitIgnore();
-      const fileContents = await Promise.all(
-        dir.map(async (file) => {
-          const relativeFilePath = path.join(directoryPath, file);
-          const filePath = path.join(this.repoPath, relativeFilePath);
-          const stats = await fs.stat(filePath);
+      const ig = await this.getGitIgnore(); // Change 5
+      const dir = await readdir(path.resolve(this.repoPath, directoryPath), { withFileTypes: true }); // Change 3
+      const fileContents = []; // Change 4
 
-          if (stats.isFile() && !ig.ignores(relativeFilePath)) {
-            const content = await fs.readFile(filePath, "utf-8");
-            return content;
-          }
-        })
-      );
-      return fileContents.filter(Boolean) as string[];
+      for await (const dirent of dir) { // Change 3
+        const relativeFilePath = path.join(directoryPath, dirent.name);
+        const filePath = path.resolve(this.repoPath, relativeFilePath); // Change 3
+
+        if (dirent.isFile() && !ig.ignores(relativeFilePath)) {
+          const content = await readFile(filePath, "utf-8");
+          fileContents.push(content); // Change 3
+        }
+      }
+
+      return fileContents; // Change 4
     } catch (error) {
       console.error('Error occurred while reading files:', error);
       return [];

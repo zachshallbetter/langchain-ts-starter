@@ -11,14 +11,23 @@ const model = new OpenAI({
 });
 
 async function main() {
-  const gitService = new GitService("./tempRepo");
-  await gitService.cloneRepo(
-    "https://github.com/zachshallbetter/langchain-ts-starter"
-  );
+  const gitService = new GitService("./");
   const fileContents = await gitService.readRepoFiles("src");
 
-  for (const fileContent of fileContents) {
-    const res = await model.call(`Review the following code: \n${fileContent}`);
+  // Store all the file contents
+  let allFileContents = fileContents.join("\n\n");
+
+  // Now you can ask questions about the code
+  const questions = [
+    "What does this function do?",
+    "Can this code be optimized?",
+    "Is there any potential bug in this code?",
+    // Add more questions as needed
+  ];
+
+  for (const question of questions) {
+    const prompt = `${question}\n\nCode:\n${allFileContents}`;
+    const res = await model.call(prompt);
     console.log(res);
   }
 }

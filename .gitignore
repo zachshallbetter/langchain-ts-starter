@@ -1,4 +1,8 @@
+dist
+.turbo
+package-lock.json
 node_modules
 .env
 dist
 .turbo
+.DS_Store

@@ -1,5 +1,7 @@
+// src/index.ts
 import * as dotenv from "dotenv";
 import { OpenAI } from "langchain";
+import { GitService } from "./gitService.ts";
 
 dotenv.config();
 
@@ -8,8 +10,17 @@ const model = new OpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
 });
 
-const res = await model.call(
-  "What's a good idea for an application to build with GPT-3?"
-);
+async function main() {
+  const gitService = new GitService("./tempRepo");
+  await gitService.cloneRepo(
+    "https://github.com/zachshallbetter/langchain-ts-starter"
+  );
+  const fileContents = await gitService.readRepoFiles("src");
 
-console.log(res);
+  for (const fileContent of fileContents) {
+    const res = await model.call(`Review the following code: \n${fileContent}`);
+    console.log(res);
+  }
+}
+
+main().catch(console.error);

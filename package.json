@@ -29,7 +29,8 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "langchain": "^0.0.39",
-    "tsup": "^6.7.0"
+    "tsup": "^6.7.0",
+    "simple-git": "^3.19.0"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.2",
